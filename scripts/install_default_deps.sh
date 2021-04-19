@@ -1,5 +1,4 @@
 #!/bin/bash
-sudo apt-get update -q
 
 declare -a PACKAGES=(
     parallel
@@ -16,7 +15,4 @@ declare -a PACKAGES=(
     libtool-bin
 )
 
-for PACKAGE in "${PACKAGES[@]}"; do
-    sudo apt-get install -y -q "$PACKAGE"
-done
 

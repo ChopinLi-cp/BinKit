@@ -56,11 +56,13 @@ for ARCH_PREFIX in "${archlist[@]}"; do
     SYSROOT="${TOOL_PATH}/${ARCH_PREFIX}-${COMPVER}/${ARCH_PREFIX}/sysroot"
 
     echo "${ARCH_PREFIX}"
-    CMD="sudo update-alternatives --force --install /usr/bin/${ARCH_PREFIX}-gcc \
+    echo $TOOLCHAIN_PATH
+    echo $SYSROOT
+    CMD="update-alternatives --install /home/lichengpeng/local/bin/${ARCH_PREFIX}-gcc \
     ${ARCH_PREFIX}-gcc ${TOOLCHAIN_PATH}-gcc 100"
 
     for slave in "${slavelist[@]}"; do
-        CMD="${CMD} --slave /usr/bin/${ARCH_PREFIX}-${slave} \
+        CMD="${CMD} --slave /home/lichengpeng/local/bin/${ARCH_PREFIX}-${slave} \
     ${ARCH_PREFIX}-${slave} \
     ${TOOLCHAIN_PATH}-${slave}"
     done

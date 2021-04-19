@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TOOL_PATH="/home/lichengpeng/tools"
+BASEDIR="/home/lichengpeng/project/tmp"
 FTPURL="https://ftp.gnu.org/gnu/coreutils"
 WORK_DIR="$BASEDIR/sources/coreutils"
 OUTDIR="$BASEDIR/output/coreutils"
@@ -24,14 +26,8 @@ echo "OUTDIR: ${OUTDIR}"
 echo "OPTIONS: ${OPTIONS}"
 
 declare -a arch_list=(
-    "x86_32"
-    "x86_64"
-    "arm_32"
     "arm_64"
-    "mips_32"
     "mips_64"
-    "mipseb_32"
-    "mipseb_64"
 )
 
 declare -a opti_list=(
@@ -42,11 +38,6 @@ declare -a opti_list=(
 )
 
 declare -a compiler_list=(
-    "gcc-4.9.4"
-    "gcc-5.5.0"
-    "gcc-6.4.0"
-    "gcc-7.3.0"
-    "gcc-8.2.0"
     "clang-4.0"
     "clang-5.0"
     "clang-6.0"
@@ -64,8 +55,7 @@ mkdir -p $LOGDIR $CONFIGDIR $MAKEDIR
 #declare -a versions=("6.7")
 #declare -a versions=("6.5")
 declare -a versions=(
-    "6.5"
-    "6.7"
+    "8.30"
 )
 
 PATCH=$(<patches/coreutils_65_67_aarch64.patch)
@@ -159,6 +149,7 @@ function doit()
         CMD="${CMD} AR=\"${ARCH_PREFIX}-gcc-ar\""
         CMD="${CMD} RANLIB=\"${ARCH_PREFIX}-gcc-ranlib\""
         CMD="${CMD} NM=\"${ARCH_PREFIX}-gcc-nm\""
+        # CMD="${CMD} WERROR_CFLAGS = -Wno-error "
 
     elif [[ $COMPILER =~ "clang" ]]; then
         CMD="CC=\"clang\""
@@ -170,8 +161,9 @@ function doit()
         CMD="${CMD} AR=\"llvm-ar\""
         CMD="${CMD} RANLIB=\"llvm-ranlib\""
         CMD="${CMD} NM=\"llvm-nm\""
+        # CMD="${CMD} WERROR_CFLAGS = -Wno-error "
     fi
-    CMD="./configure --build=x86_64-linux-gnu ${CMD}"
+    CMD="./configure -enable-single-binary --build=x86_64-linux-gnu ${CMD}"
     CMD2="make -j ${NUM_JOBS} -l ${MAX_JOBS}"
 
     if ! $ECHO; then
@@ -188,6 +180,7 @@ function doit()
         # one should wrap variables with "" ...
         sed -i 's/ CC=\$\${CC:-\$(CC)}/ CC="\$\${CC:-\$(CC)}"/' Makefile
         sed -i 's/ CC=\$(CC)/ CC="$(CC)"/' Makefile
+        sed -i 's/WERROR_CFLAGS =/WERROR_CFLAGS = -Wno-error/' Makefile
     fi
 
     eval "${CMD2}"
@@ -228,103 +221,7 @@ function helper()
     fi
 
     declare -a bin_list=(
-        "./src/base64"
-        "./src/basename"
-        "./src/cat"
-        "./src/chgrp"
-        "./src/chmod"
-        "./src/chown"
-        "./src/chroot"
-        "./src/cksum"
-        "./src/comm"
-        "./src/cp"
-        "./src/csplit"
-        "./src/cut"
-        "./src/date"
-        #    "./src/dcgen"
-        "./src/dd"
-        #    "./src/df"
-        "./src/dir"
-        "./src/dircolors"
-        "./src/dirname"
-        "./src/du"
-        "./src/echo"
-        "./src/env"
-        "./src/expand"
-        "./src/expr"
-        "./src/factor"
-        "./src/false"
-        "./src/fmt"
-        "./src/fold"
-        "./src/ginstall"
-        #    "./src/groups"
-        "./src/head"
-        "./src/hostid"
-        "./src/hostname"
-        "./src/id"
-        "./src/join"
-        "./src/kill"
-        "./src/link"
-        "./src/ln"
-        "./src/logname"
-        "./src/ls"
-        "./src/md5sum"
-        "./src/mkdir"
-        "./src/mkfifo"
-        "./src/mknod"
-        "./src/mv"
-        "./src/nice"
-        "./src/nl"
-        "./src/nohup"
-        "./src/od"
-        "./src/paste"
-        "./src/pathchk"
-        "./src/pinky"
-        "./src/pr"
-        "./src/printenv"
-        "./src/printf"
-        "./src/ptx"
-        "./src/pwd"
-        "./src/readlink"
-        "./src/rm"
-        "./src/rmdir"
-        "./src/seq"
-        "./src/setuidgid"
-        "./src/sha1sum"
-        "./src/sha224sum"
-        "./src/sha256sum"
-        "./src/sha384sum"
-        "./src/sha512sum"
-        "./src/shred"
-        "./src/shuf"
-        "./src/sleep"
-        "./src/sort"
-        "./src/split"
-        "./src/stat"
-        "./src/stty"
-        "./src/su"
-        "./src/sum"
-        "./src/sync"
-        "./src/tac"
-        "./src/tail"
-        "./src/tee"
-        "./src/test"
-        "./src/touch"
-        "./src/tr"
-        "./src/true"
-        "./src/tsort"
-        "./src/tty"
-        "./src/uname"
-        "./src/unexpand"
-        "./src/uniq"
-        "./src/unlink"
-        "./src/uptime"
-        "./src/users"
-        "./src/vdir"
-        "./src/wc"
-        "./src/who"
-        "./src/whoami"
-        "./src/yes"
+        "./src/coreutils"
     )
 
 
@@ -352,26 +249,26 @@ function helper()
     cp -R --preserve=all "${WORK_DIR}-${ver}" $NEW_WORK_DIR
     cd $NEW_WORK_DIR
 
-    sed -i "s/^#undef intptr_t/\/\/#undef intptr_t/" "./lib/stdint_.h"
-    sed -i "s/^#define intptr_t/\/\/#define intptr_t/" "./lib/stdint_.h"
+    # sed -i "s/^#undef intptr_t/\/\/#undef intptr_t/" "./lib/stdint_.h"
+    # sed -i "s/^#define intptr_t/\/\/#define intptr_t/" "./lib/stdint_.h"
 
-    declare -a patch_list=(
-        "src/touch.c"
-        "src/copy.c"
-        "lib/utimens.h"
-        "lib/utimens.c"
-    )
+ #   declare -a patch_list=(
+ #       "src/touch.c"
+ #       "src/copy.c"
+ #       "lib/utimens.h"
+ #       "lib/utimens.c"
+ #   )
 
-    for p in "${patch_list[@]}"
-    do
-        sed -i "s/futimens/cu_futimens/g" "${p}"
-    done
+ #   for p in "${patch_list[@]}"
+ #   do
+ #       sed -i "s/futimens/cu_futimens/g" "${p}"
+ #   done
 
     # Toolchain environment conditionally defines 'AT_FDCWD' variable. Thus, we
     # forcibly used system fcntl.h
-    sed -i 's/fcntl.h/linux\/fcntl.h/' "lib/utimens.c"
+#    sed -i 's/fcntl.h/linux\/fcntl.h/' "lib/utimens.c"
 
-    echo "$PATCH" | patch -p0 -N > /dev/null
+#    echo "$PATCH" | patch -p0 -N > /dev/null
 
     # DELETE DEFAULT OPTIMAZATION LEVEL
     sed -i "s/-O[s0-9]*//g" "configure"
@@ -391,10 +288,10 @@ for ver in "${versions[@]}"
 do
     VER_WORK_DIR="${WORK_DIR}-${ver}"
     if [ ! -d "$VER_WORK_DIR" ]; then
-        if [ ! -f "coreutils-${ver}.tar.gz" ]; then
-            wget "${FTPURL}/coreutils-${ver}.tar.gz"
+        if [ ! -f "coreutils-${ver}.tar.xz" ]; then
+            wget "${FTPURL}/coreutils-${ver}.tar.xz"
         fi
-        tar zxvf "coreutils-${ver}.tar.gz" > /dev/null
+        tar xvf "coreutils-${ver}.tar.xz" > /dev/null
     fi
 done
 
@@ -427,5 +324,4 @@ export PACKAGE_NAME
 
 echo "${#cmds[@]} options to be processed ..."
 
-parallel -j "$NUM_JOBS" ::: "${cmds[@]}"
-
+parallel -j 12 ::: "${cmds[@]}"
